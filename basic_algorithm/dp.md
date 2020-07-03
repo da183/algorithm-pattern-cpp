@@ -283,21 +283,31 @@ bool canJump(vector<int>& nums) {
 > 数组中的每个元素代表你在该位置可以跳跃的最大长度。
 > 你的目标是使用最少的跳跃次数到达数组的最后一个位置。
 
-```c++
-int jump(vector<int>& nums) {
-    int size = nums.size();
-    vector<int> cache(size);
-    cache[0] = 0;
-    // cache[i + 1] >= cache[i]
-    for (int i = 1, farest = 0; i < size; ++i) {
-        while (farest < size && farest + nums[farest] < i) {
-            ++farest;
+```go
+func jump(nums []int) int {
+    // 状态：f[i] 表示从起点到当前位置最小次数
+    // 推导：f[i] = f[j],a[j]+j >=i,min(f[j]+1)
+    // 初始化：f[0] = 0
+    // 结果：f[n-1]
+    f := make([]int, len(nums))
+    f[0] = 0
+    for i := 1; i < len(nums); i++ {
+        // f[i] 最大值为i
+        f[i] = i
+        // 遍历之前结果取一个最小值+1
+        for j := 0; j < i; j++ {
+            if nums[j]+j >= i {
+                f[i] = min(f[j]+1,f[i])
+            }
         }
-        // 假设你总是可以到达数组的最后一个位置。
-        // 可以认定farest + nums[farest]一定会大于i
-        cache[i] = cache[farest] + 1;
     }
-    return cache.back();
+    return f[len(nums)-1]
+}
+func min(a, b int) int {
+    if a > b {
+        return b
+    }
+    return a
 }
 ```
 
@@ -306,37 +316,43 @@ int jump(vector<int>& nums) {
 > 给定一个字符串 _s_，将 _s_ 分割成一些子串，使每个子串都是回文串。
 > 返回符合要求的最少分割次数。
 
-```c++
-int minCut(string s) {
-    if (s.size() <= 1) {
-        return 0;
-    }
-    auto size = s.size();
-    vector<int> cache(size);
-    for (int i = 0; i < size; ++i) {
-        cache[i] = i;
-    }
-    vector<vector<bool>> isPalindrome(size, vector<bool>(size));
-    for (int right = 0; right < size; ++right) {
-        for (int left = 0; left <= right; ++left) {
-            // 如果头尾相同，可能为回文！
-            // len < 3时，直接判断为回文
-            // len >= 3时，判断里面一层，左右往里缩一格
-            isPalindrome[left][right] = s[right] == s[left] && (right - left < 3 || isPalindrome[left + 1][right - 1]);
-        }
-    }
-    for (int i = 1; i < size; ++i) {
-        if (isPalindrome[0][i]) {
-            cache[i] = 0;
-            continue;
-        }
-        for (int j = 0; j < i; ++j) {
-            if (isPalindrome[j + 1][i]) {
-                cache[i] = min(cache[j] + 1, cache[i]);
-            }
-        }
-    }
-    return cache.back();
+```go
+func minCut(s string) int {
+	// state: f[i] "前i"个字符组成的子字符串需要最少几次cut(个数-1为索引)
+	// function: f[i] = MIN{f[j]+1}, j < i && [j+1 ~ i]这一段是一个回文串
+	// intialize: f[i] = i - 1 (f[0] = -1)
+	// answer: f[s.length()]
+	if len(s) == 0 || len(s) == 1 {
+		return 0
+	}
+	f := make([]int, len(s)+1)
+	f[0] = -1
+	f[1] = 0
+	for i := 1; i <= len(s); i++ {
+		f[i] = i - 1
+		for j := 0; j < i; j++ {
+			if isPalindrome(s, j, i-1) {
+				f[i] = min(f[i], f[j]+1)
+			}
+		}
+	}
+	return f[len(s)]
+}
+func min(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+func isPalindrome(s string, i, j int) bool {
+	for i < j {
+		if s[i] != s[j] {
+			return false
+		}
+		i++
+		j--
+	}
+	return true
 }
 ```
 
@@ -348,91 +364,91 @@ int minCut(string s) {
 
 > 给定一个无序的整数数组，找到其中最长上升子序列的长度。
 
-```c++
-#pragma region 复杂度O(n^2)
-int lengthOfLIS1(vector<int>& nums) {
-    if (nums.size() < 2) {
-        return nums.size();
+```go
+func lengthOfLIS(nums []int) int {
+    // f[i] 表示从0开始到i结尾的最长序列长度
+    // f[i] = max(f[j])+1 ,a[j]<a[i]
+    // f[0...n-1] = 1
+    // max(f[0]...f[n-1])
+    if len(nums) == 0 || len(nums) == 1 {
+        return len(nums)
     }
-
-    vector<int> cache(nums.size());
-    cache[0] = 1;
-    for (int i = 1; i < nums.size(); ++i) {
-        cache[i] = 1;
-        for (int j = 0; j < i; ++j) {
-            if (nums[j] < nums[i]) {
-                cache[i] = max(cache[i], cache[j] + 1);
+    f := make([]int, len(nums))
+    f[0] = 1
+    for i := 1; i < len(nums); i++ {
+        f[i] = 1
+        for j := 0; j < i; j++ {
+            if nums[j] < nums[i] {
+                f[i] = max(f[i], f[j]+1)
             }
         }
     }
-    auto maxLen = cache[0];
-    for (const auto &item : cache) {
-        maxLen = max(maxLen, item);
+    result := f[0]
+    for i := 1; i < len(nums); i++ {
+        result = max(result, f[i])
     }
-    return maxLen;
-}
-#pragma endregion
+    return result
 
-#pragma region 复杂度O(n log n)
-// 题目给了提示，看到log n可以考虑往二分查找之类的上凑
-// 思路：保存最大长度及其末尾节点，通过判断是否大于末尾节点来决定是否能够组成子序列
-// 又，既然不能保证当前的"最大长度"会不会被其他组合反超
-// 干脆把整个过程，每个长度都保存下来，构成单调栈
-// 一方面通过栈顶来决定是否能够组合成更长的子序列
-// 另一方面通过查找，找出比当前节点小的第一个末尾进行更新，以确保其他组合的机会
-int lengthOfLIS(vector<int> &nums) {
-    int size = nums.size();
-    if (size < 2) {
-        return size;
-    }
-
-    // tail[i]表示长度为i + 1的子序列的最小末尾值
-    // tail必定单调递增，单调栈
-    // 如果当前节点大于栈顶，即，比最长子序列的末尾还大，入栈（长度+1
-    // 否则通过二分查找找到第一个比当前节点大的值，进行更新。子序列长度相同，末尾节点变小
-    vector<int> tail;
-    tail.push_back(nums.front());
-    for (int i = 1; i < size; ++i) {
-        if (nums[i] > tail.back()) {
-            tail.push_back(nums[i]);
-            continue;
-        }
-        auto left = 0;
-        auto right = tail.size() - 1;
-        while (left < right) {
-            int mid = left + (right - left) / 2;
-            if (tail[mid] < nums[i]) {
-                left = mid + 1;
-            } else {
-                right = mid;
-            }
-        }
-        tail[left] = nums[i];
-    }
-    return tail.size();
 }
-#pragma endregion
+func max(a, b int) int {
+    if a > b {
+        return a
+    }
+    return b
+}
 ```
 
 ### [word-break](https://leetcode-cn.com/problems/word-break/)
 
 > 给定一个**非空**字符串  *s*  和一个包含**非空**单词列表的字典  *wordDict*，判定  *s*  是否可以被空格拆分为一个或多个在字典中出现的单词。
 
-```c++
-bool wordBreak(string s, vector<string> &wordDict) {
-    unordered_set<string> wordDictSet{wordDict.begin(), wordDict.end()};
-    vector<bool> dp(s.size() + 1);
-    dp[0] = true;
-    for (int i = 1; i <= s.size(); ++i) {
-        for (int j = 0; j < i; ++j) {
-            if (dp[j] && wordDictSet.find(s.substr(j, i - j)) != wordDictSet.end()) {
-                dp[i] = true;
-                break;
-            }
-        }
-    }
-    return dp.back();
+```go
+func wordBreak(s string, wordDict []string) bool {
+	// f[i] 表示前i个字符是否可以被切分
+	// f[i] = f[j] && s[j+1~i] in wordDict
+	// f[0] = true
+	// return f[len]
+
+	if len(s) == 0 {
+		return true
+	}
+	f := make([]bool, len(s)+1)
+	f[0] = true
+	max,dict := maxLen(wordDict)
+	for i := 1; i <= len(s); i++ {
+		l := 0
+		if i - max > 0 {
+			l = i - max
+		}
+		for j := l; j < i; j++ {
+			if f[j] && inDict(s[j:i],dict) {
+				f[i] = true
+                break
+			}
+		}
+	}
+	return f[len(s)]
 }
+
+
+
+func maxLen(wordDict []string) (int,map[string]bool) {
+    dict := make(map[string]bool)
+	max := 0
+	for _, v := range wordDict {
+		dict[v] = true
+		if len(v) > max {
+			max = len(v)
+		}
+	}
+	return max,dict
+}
+
+func inDict(s string,dict map[string]bool) bool {
+	_, ok := dict[s]
+	return ok
+}
+
 ```
 
 小结
@@ -452,22 +468,49 @@ bool wordBreak(string s, vector<string> &wordDict) {
 > 一个字符串的   子序列   是指这样一个新的字符串：它是由原字符串在不改变字符的相对顺序的情况下删除某些字符（也可以不删除任何字符）后组成的新字符串。
 > 例如，"ace" 是 "abcde" 的子序列，但 "aec" 不是 "abcde" 的子序列。两个字符串的「公共子序列」是这两个字符串所共同拥有的子序列。
 
-```c++
-vector<vector<int>> dp(text1.size() + 1, vector<int>(text2.size() + 1));
-    for (int i = 1; i <= text1.size(); ++i) {
-        for (int j = 1; j <= text2.size(); ++j) {
-            if (text1[i - 1] == text2[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1] + 1;
+```go
+func longestCommonSubsequence(a string, b string) int {
+    // dp[i][j] a前i个和b前j个字符最长公共子序列
+    // dp[m+1][n+1]
+    //   ' a d c e
+    // ' 0 0 0 0 0
+    // a 0 1 1 1 1
+    // c 0 1 1 2 1
+    //
+    dp:=make([][]int,len(a)+1)
+    for i:=0;i<=len(a);i++ {
+        dp[i]=make([]int,len(b)+1)
+    }
+    for i:=1;i<=len(a);i++ {
+        for j:=1;j<=len(b);j++ {
+            // 相等取左上元素+1，否则取左或上的较大值
+            if a[i-1]==b[j-1] {
+                dp[i][j]=dp[i-1][j-1]+1
             } else {
-                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+                dp[i][j]=max(dp[i-1][j],dp[i][j-1])
             }
         }
     }
-    return dp.back().back();
+    return dp[len(a)][len(b)]
+}
+func max(a,b int)int {
+    if a>b{
+        return a
+    }
+    return b
 }
 ```
 
 注意点
+
+- go 切片初始化
+
+```go
+dp:=make([][]int,len(a)+1)
+for i:=0;i<=len(a);i++ {
+    dp[i]=make([]int,len(b)+1)
+}
+```
 
 - 从 1 开始遍历到最大长度
 - 索引需要减一
@@ -482,30 +525,37 @@ vector<vector<int>> dp(text1.size() + 1, vector<int>(text2.size() + 1));
 
 思路：和上题很类似，相等则不需要操作，否则取删除、插入、替换最小操作次数的值+1
 
-```c++
-int minDistance(string word1, string word2) {
-    // 删除与插入操作是等价的，修改word1和修改word2也是等价的
-    // 故，实际操作只有在三种：
-    // 1. 在word1插入，dp[i][j] = dp[i][j - 1] + 1
-    // 2. 在word2插入，dp[i][j] = dp[i - 1][j] + 1
-    // 3. 在word1修改，dp[i][j] = dp[i - 1][j - 1] + 1
-    vector<vector<int>> dp(word1.size(), vector<int>(word2.size()));
-    for (int i = 0; i < word1.size(); ++i) {
-        dp[i][0] = i;
+```go
+func minDistance(word1 string, word2 string) int {
+    // dp[i][j] 表示a字符串的前i个字符编辑为b字符串的前j个字符最少需要多少次操作
+    // dp[i][j] = OR(dp[i-1][j-1]，a[i]==b[j],min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1])+1)
+    dp:=make([][]int,len(word1)+1)
+    for i:=0;i<len(dp);i++{
+        dp[i]=make([]int,len(word2)+1)
     }
-    for (int i = 0; i < word2.size(); ++i) {
-        dp[0][i] = i;
+    for i:=0;i<len(dp);i++{
+        dp[i][0]=i
     }
-    for (int i = 1; i <= word1.size(); ++i) {
-        for (int j = 1; j <= word2.size(); ++j) {
-            if (word1[i - 1] == word2[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1];
-            } else {
-                dp[i][j] = min(min(dp[i - 1][j], dp[i][j - 1]), dp[i - 1][j - 1]) + 1;
+    for j:=0;j<len(dp[0]);j++{
+        dp[0][j]=j
+    }
+    for i:=1;i<=len(word1);i++{
+        for j:=1;j<=len(word2);j++{
+            // 相等则不需要操作
+            if word1[i-1]==word2[j-1] {
+                dp[i][j]=dp[i-1][j-1]
+            }else{ // 否则取删除、插入、替换最小操作次数的值+1
+                dp[i][j]=min(min(dp[i-1][j],dp[i][j-1]),dp[i-1][j-1])+1
             }
         }
     }
-    return dp.back().back();
+    return dp[len(word1)][len(word2)]
+}
+func min(a,b int)int{
+    if a>b{
+        return b
+    }
+    return a
 }
 ```
 
@@ -521,23 +571,35 @@ int minDistance(string word1, string word2) {
 
 思路：和其他 DP 不太一样，i 表示钱或者容量
 
-```c++
-int coinChange(vector<int>& coins, int amount) {
-    // 初始化为amount + 1，如果最后大于amount说明无解
-    // dp[i]表示金额为i时，所需最少硬币个数
-    // dp[i] = min(dp[i], dp[i - coin] + 1)
-    // dp[i - coin]，倒扣当前面额
-    // 注意不要越界，i - coin >= 0
-    vector<int> dp(amount + 1, amount + 1);
-    dp[0] = 0;
-    for (auto i = 1; i <= amount; ++i) {
-        for (const auto &coin : coins) {
-            if (i - coin >= 0) {
-                dp[i] = min(dp[i], dp[i - coin] + 1);
+```go
+func coinChange(coins []int, amount int) int {
+    // 状态 dp[i]表示金额为i时，组成的最小硬币个数
+    // 推导 dp[i]  = min(dp[i-1], dp[i-2], dp[i-5])+1, 前提 i-coins[j] > 0
+    // 初始化为最大值 dp[i]=amount+1
+    // 返回值 dp[n] or dp[n]>amount =>-1
+    dp:=make([]int,amount+1)
+    for i:=0;i<=amount;i++{
+        dp[i]=amount+1
+    }
+    dp[0]=0
+    for i:=1;i<=amount;i++{
+        for j:=0;j<len(coins);j++{
+            if  i-coins[j]>=0  {
+                dp[i]=min(dp[i],dp[i-coins[j]]+1)
             }
         }
     }
-    return dp.back() > amount ? -1 : dp.back();
+    if dp[amount] > amount {
+        return -1
+    }
+    return dp[amount]
+
+}
+func min(a,b int)int{
+    if a>b{
+        return b
+    }
+    return a
 }
 ```
 
@@ -549,30 +611,34 @@ int coinChange(vector<int>& coins, int amount) {
 
 > 在 n 个物品中挑选若干物品装入背包，最多能装多满？假设背包的大小为 m，每个物品的大小为 A[i]
 
-```c++
-int backPack(int m, vector<int> &A) {
+```go
+func backPack (m int, A []int) int {
     // write your code here
-    // dp[i][j] 前i个物品，是否能装j
-    // dp[i - 1][j] == true? 则不需要第i个物品也能装满
-    // dp[i - 1][j - A[i - 1]]? 腾出第i个物品的空间，剩下空间能否装满
-    // dp[i][j] = dp[i - 1][j] or dp[i - 1][j - A[i - 1]]
-    vector<vector<bool>> dp(A.size() + 1, vector<bool>(m + 1));
-    dp[0][0] = true;
-    for (int i = 1; i <= A.size(); ++i) {
-        for (int j = 0; j <= m; ++j) {
-            dp[i][j] = dp[i - 1][j];
-            if (j - A[i - 1] >= 0 && dp[i - 1][j - A[i - 1]]) {
-                dp[i][j] = true;
+    // f[i][j] 前i个物品，是否能装j
+    // f[i][j] =f[i-1][j] f[i-1][j-a[i] j>a[i]
+    // f[0][0]=true f[...][0]=true
+    // f[n][X]
+    f:=make([][]bool,len(A)+1)
+    for i:=0;i<=len(A);i++{
+        f[i]=make([]bool,m+1)
+    }
+    f[0][0]=true
+    for i:=1;i<=len(A);i++{
+        for j:=0;j<=m;j++{
+            f[i][j]=f[i-1][j]
+            if j-A[i-1]>=0 && f[i-1][j-A[i-1]]{
+                f[i][j]=true
             }
         }
     }
-    for (int i = m; i >= 0; ++i) {
-        if (dp[A.size()][i]) {
-            return i;
+    for i:=m;i>=0;i--{
+        if f[len(A)][i] {
+            return i
         }
     }
-    return 0;
+    return 0
 }
+
 ```
 
 ### [backpack-ii](https://www.lintcode.com/problem/backpack-ii/description)
@@ -582,22 +648,31 @@ int backPack(int m, vector<int> &A) {
 
 思路：f[i][j] 前 i 个物品，装入 j 背包 最大价值
 
-```c++
-int backPackII(int m, vector<int> &A, vector<int> &V) {
+```go
+func backPackII (m int, A []int, V []int) int {
     // write your code here
-    // dp[i][j] 前i个物品，装入j背包 最大价值
-    vector<vector<int>> dp(A.size() + 1, vector<int>(V.size() + 1));
-    for (int i = 1; i <= A.size(); ++i) {
-        for (int j = 0; j <= m; ++j) {
-            // 不选第i个物品，则dp[i][j] = dp[i - 1][j]
-            // 选了第i个物品，则dp[i][j] = dp[i - 1][j - A[i - 1]]，倒扣i的大小
-            dp[i][j] = dp[i - 1][j];
-            if (j - A[i - 1] >= 0) {
-                dp[i][j] = max(dp[i][j], dp[i - 1][j - A[i - 1]] + V[i - 1]);
+    // f[i][j] 前i个物品，装入j背包 最大价值
+    // f[i][j] =max(f[i-1][j] ,f[i-1][j-A[i]]+V[i]) 是否加入A[i]物品
+    // f[0][0]=0 f[0][...]=0 f[...][0]=0
+    f:=make([][]int,len(A)+1)
+    for i:=0;i<len(A)+1;i++{
+        f[i]=make([]int,m+1)
+    }
+    for i:=1;i<=len(A);i++{
+        for j:=0;j<=m;j++{
+            f[i][j]=f[i-1][j]
+            if j-A[i-1] >= 0{
+                f[i][j]=max(f[i-1][j],f[i-1][j-A[i-1]]+V[i-1])
             }
         }
     }
-    return dp.back().back();
+    return f[len(A)][m]
+}
+func max(a,b int)int{
+    if a>b{
+        return a
+    }
+    return b
 }
 ```
 
