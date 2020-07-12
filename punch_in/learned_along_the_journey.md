@@ -1,18 +1,26 @@
 [toc]
-#### 注意边界
+## 关于算法
+### 二进制有点难
+### 滑动窗口
+### 动态规划
+### 二分查找
+### 回溯法
+
+
+## C++相关
+### 注意边界
 太多次越界了，很多时候CLion并不会报错~~难道是我漏看了exit code?~~
 一提交运行直接崩了
 
-### C++相关
-#### 初始化列表的使用要小心
+### 初始化列表的使用要小心
 ```c++
 vector<int> ret(n + 1, 1); // 初始化为n+1个1
 vector<int> ret{n + 1, 1}; // 初始化为n + 1, 1两个元素！
 ```
 
-#### 普通数组也可以使用range for进行遍历
+### 普通数组也可以使用range for进行遍历
 
-#### push_back vs emplace_back
+### push_back vs emplace_back
 [C++ difference between emplace_back and push_back function
 ](http://candcplusplus.com/c-difference-between-emplace_back-and-push_back-function)  
 1. 如果对象的构造函数参数不止一个，push_back只能接受对象实例；emplace_back可以接受构造函数的参数！
@@ -31,7 +39,7 @@ push_back只能接受对象实例或者单参数版本的构造函数的参数�
 不会创建临时对象，而是直接在vector中创建对象。避免了创建不必要的临时对象
 
 
-### JetBrians产品中关于GitHub的fork、pull request使用
+## JetBrians产品中关于GitHub的fork、pull request使用
 [官方文档](https://www.jetbrains.com/help/idea/contribute-to-projects.html)  
 需要先**VCS | Git | Rebase my GitHub fork**  
-之后就可以看到upstream
+之后就可以看到upstream。日志、pull、Create Pull Request、View Pull Request都可以看得到upstream
