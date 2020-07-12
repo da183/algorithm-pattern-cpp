@@ -99,4 +99,6 @@
 | ---- | ------------------------------------------------- | ------------------------------------------------------------------- |
 | ✅   | [wardseptember](https://github.com/wardseptember) | [notes(Java 实现)](https://github.com/wardseptember/notes)          |
 | ✅   | [dashidhy](https://github.com/dashidhy) | [algorithm-pattern-python(Python 实现)](https://github.com/dashidhy/algorithm-pattern-python) |
-| ✅   | [da183](https://github.com/da183) | [algorithm-pattern-python(C++ 实现)](https://github.com/da183/algorithm-pattern-cpp) |
+| ✅   | [da183](https://github.com/da183) | [algorithm-pattern-cpp(C++ 实现)](https://github.com/da183/algorithm-pattern-cpp) |
+
+[自己的一点总结](punch_in/learned_along_the_journey.md)
