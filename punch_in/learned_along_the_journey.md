@@ -20,6 +20,10 @@ vector<int> ret{n + 1, 1}; // 初始化为n + 1, 1两个元素！
 
 ### 普通数组也可以使用range for进行遍历
 
+### 越界？
+mid * mid < x越界  
+那就改写成mid < x / mid
+
 ### push_back vs emplace_back
 [C++ difference between emplace_back and push_back function
 ](http://candcplusplus.com/c-difference-between-emplace_back-and-push_back-function)  
@@ -38,6 +42,12 @@ push_back只能接受对象实例或者单参数版本的构造函数的参数�
 * emplace_back
 不会创建临时对象，而是直接在vector中创建对象。避免了创建不必要的临时对象
 
+### decomposition declaration
+C++17支持如下语法：
+```c++
+queue<pair<int, int>> queue;
+auto [i, j] = queue.front();
+```
 
 ## JetBrians产品中关于GitHub的fork、pull request使用
 [官方文档](https://www.jetbrains.com/help/idea/contribute-to-projects.html)  
