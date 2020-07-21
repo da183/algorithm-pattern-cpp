@@ -484,7 +484,9 @@ vector<vector<int>> levelOrder(TreeNode *root) {
 /*
  * 从0出发，而不是从1出发！
  * 把所有为0的节点压入队列，并进行广度优先遍历
- * 每次向外扩散一格
+ * 并不是一个点往外不停扩散，再换下一个点（那是深度优先）
+ * 每次向外扩散一格，距离+1，并直接出栈！
+ * 剩下的交给外圈的继续扩散
  */
 vector<vector<int>> updateMatrix(vector<vector<int>>& matrix) {
     int row = matrix.size(), column = matrix[0].size();
